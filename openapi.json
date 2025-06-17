@@ -19,10 +19,19 @@
       "description": "로컬 서버"
     }
   ],
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ],
   "tags": [
     {
       "name": "Account",
       "description": "사용자 인증 API"
+    },
+    {
+      "name": "Notice",
+      "description": "공지사항 API"
     },
     {
       "name": "일정 관리 API",
@@ -33,12 +42,24 @@
       "description": "학교 정보 조회, 등록, 수정, 삭제 관련 API"
     },
     {
+      "name": "학교별 히스토리 API",
+      "description": "학교별 히스토리 관리를 위한 API를 제공합니다. 학교별 히스토리 조회, 등록, 수정, 삭제 기능이 있습니다."
+    },
+    {
+      "name": "Custom Report",
+      "description": "직접 작성 보고서 API"
+    },
+    {
       "name": "방문 기록 API",
       "description": "학교 방문 기록 조회, 등록, 수정, 삭제 관련 API"
     },
     {
       "name": "채팅 API",
       "description": "채팅방 및 메시지 관련 API"
+    },
+    {
+      "name": "학교별 히스토리 API",
+      "description": "학교별 히스토리 조회, 등록, 수정, 삭제 관련 API"
     },
     {
       "name": "대시보드 정보 API",
@@ -52,7 +73,7 @@
           "방문 기록 API"
         ],
         "summary": "방문 기록 상세 조회",
-        "description": "방문 기록 ID로 특정 방문 기록의 상세 정보를 조회합니다. VOC 내용 및 해결 상태 등 상세 정보를 확인할 수 있습니다.",
+        "description": "방문 기록 ID로 특정 방문 기록의 상세 정보를 조회합니다. VOC 내용, 해결 상태, 특이사항/메모 등 상세 정보를 확인할 수 있습니다.",
         "operationId": "getVisitLogById",
         "parameters": [
           {
@@ -88,7 +109,8 @@
                       "vocContent": "제품 불량 발견",
                       "vocResolved": false,
                       "resolution": null,
-                      "completeDate": null
+                      "completeDate": null,
+                      "note": "관계자들이 매우 우호적이었으며 추가 납품 문의가 있었음"
                     }
                   }
                 }
@@ -147,7 +169,8 @@
                     "vocOccurred": true,
                     "vocContent": "제품 불량 발견 - 수정됨",
                     "vocResolved": true,
-                    "resolution": "새 제품으로 교체 완료"
+                    "resolution": "새 제품으로 교체 완료",
+                    "note": "관계자들이 만족스러워했으며, 내년 물량도 확보할 예정"
                   }
                 }
               }
@@ -156,9 +179,6 @@
           "required": true
         },
         "responses": {
-          "404": {
-            "description": "방문 기록을 찾을 수 없음"
-          },
           "200": {
             "description": "수정 성공",
             "content": {
@@ -175,6 +195,9 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "방문 기록을 찾을 수 없음"
           }
         }
       },
@@ -198,7 +221,7 @@
           }
         ],
         "responses": {
-          "204": {
+          "200": {
             "description": "삭제 성공"
           },
           "404": {
@@ -253,7 +276,7 @@
                     "url": "www.school-updated.es.kr",
                     "teacherName": "홍길동",
                     "teacherPhone": "010-9876-5432",
-                    "chargerPw": "5678",
+                    "chargerPw": true,
                     "quantity": 15,
                     "deliveryDate": "2023-07-15",
                     "amount": 1500000
@@ -309,6 +332,140 @@
         "responses": {
           "204": {
             "description": "삭제 성공"
+          }
+        }
+      }
+    },
+    "/api/school-history/{historyId}": {
+      "get": {
+        "tags": [
+          "학교별 히스토리 API"
+        ],
+        "summary": "방문 히스토리 상세 조회",
+        "description": "방문 히스토리 ID로 특정 방문 히스토리의 상세 정보를 조회합니다. 요청 시 Authorization 헤더에 Bearer 토큰을 포함해야 합니다.",
+        "operationId": "getHistoryById",
+        "parameters": [
+          {
+            "name": "historyId",
+            "in": "path",
+            "description": "히스토리 ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "example": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SchoolHistoryResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "방문 히스토리를 찾을 수 없음"
+          },
+          "401": {
+            "description": "인증 실패"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "학교별 히스토리 API"
+        ],
+        "summary": "방문 히스토리 수정",
+        "description": "방문 히스토리 ID로 특정 방문 히스토리를 수정합니다. 요청 시 Authorization 헤더에 Bearer 토큰을 포함해야 합니다.",
+        "operationId": "updateHistory",
+        "parameters": [
+          {
+            "name": "historyId",
+            "in": "path",
+            "description": "히스토리 ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "example": 2
+          }
+        ],
+        "requestBody": {
+          "description": "방문 히스토리 수정 정보",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SchoolHistoryRequest"
+              },
+              "examples": {
+                "방문 히스토리 수정 요청 예시": {
+                  "description": "방문 히스토리 수정 요청 예시",
+                  "value": {
+                    "schoolId": "SCH001",
+                    "visitDate": "2025-05-19T08:41:25.064Z",
+                    "author": "김영업",
+                    "content": "수정된 학교 방문 히스토리 내용입니다."
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "404": {
+            "description": "방문 히스토리를 찾을 수 없음"
+          },
+          "200": {
+            "description": "수정 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SchoolHistoryResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "학교별 히스토리 API"
+        ],
+        "summary": "방문 히스토리 삭제",
+        "description": "방문 히스토리 ID로 특정 방문 히스토리를 삭제합니다. 요청 시 Authorization 헤더에 Bearer 토큰을 포함해야 합니다.",
+        "operationId": "deleteHistory",
+        "parameters": [
+          {
+            "name": "historyId",
+            "in": "path",
+            "description": "히스토리 ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "example": 2
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "방문 히스토리를 찾을 수 없음"
+          },
+          "200": {
+            "description": "삭제 성공"
+          },
+          "401": {
+            "description": "인증 실패"
           }
         }
       }
@@ -381,6 +538,9 @@
           "required": true
         },
         "responses": {
+          "400": {
+            "description": "잘못된 요청"
+          },
           "200": {
             "description": "수정 성공",
             "content": {
@@ -390,9 +550,6 @@
                 }
               }
             }
-          },
-          "400": {
-            "description": "잘못된 요청"
           },
           "404": {
             "description": "일정을 찾을 수 없음"
@@ -429,13 +586,271 @@
         }
       }
     },
+    "/api/notices/{id}": {
+      "get": {
+        "tags": [
+          "Notice"
+        ],
+        "summary": "공지사항 상세 조회",
+        "description": "특정 공지사항의 상세 정보를 조회합니다.",
+        "operationId": "getNoticeById",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "인증 토큰 (Bearer 형식)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "description": "공지사항 ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NoticeResponseDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Notice"
+        ],
+        "summary": "공지사항 수정",
+        "description": "기존 공지사항을 수정합니다.",
+        "operationId": "updateNotice",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "인증 토큰 (Bearer 형식)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "description": "공지사항 ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "공지사항 수정 정보",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NoticeRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NoticeResponseDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Notice"
+        ],
+        "summary": "공지사항 삭제",
+        "description": "공지사항을 삭제합니다.",
+        "operationId": "deleteNotice",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "인증 토큰 (Bearer 형식)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "description": "공지사항 ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/custom-reports/{id}": {
+      "get": {
+        "tags": [
+          "Custom Report"
+        ],
+        "summary": "보고서 상세 조회",
+        "description": "특정 보고서의 상세 정보를 조회합니다.",
+        "operationId": "getReport",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "인증 토큰 (Bearer 형식)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "description": "보고서 ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomReportResponseDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Custom Report"
+        ],
+        "summary": "보고서 수정",
+        "description": "기존 보고서를 수정합니다. 비밀번호 검증이 필요합니다.",
+        "operationId": "updateReport",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "인증 토큰 (Bearer 형식)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "description": "보고서 ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "보고서 수정 정보 (비밀번호 포함)",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomReportRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomReportResponseDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Custom Report"
+        ],
+        "summary": "보고서 삭제",
+        "description": "보고서를 삭제합니다. (하위 호환성을 위해 유지)",
+        "operationId": "deleteReport",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "인증 토큰 (Bearer 형식)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "description": "보고서 ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/visits": {
       "post": {
         "tags": [
           "방문 기록 API"
         ],
         "summary": "방문 기록 등록",
-        "description": "새로운 방문 기록을 등록합니다. 학교 ID, 방문 목적, VOC 발생 여부 등을 포함하여 등록할 수 있습니다.",
+        "description": "새로운 방문 기록을 등록합니다. 학교 ID, 방문 목적, VOC 발생 여부, 특이사항/메모 등을 포함하여 등록할 수 있습니다.",
         "operationId": "createVisitLog",
         "parameters": [
           {
@@ -468,7 +883,8 @@
                     "vocOccurred": true,
                     "vocContent": "제품 불량 발견",
                     "vocResolved": false,
-                    "resolution": null
+                    "resolution": null,
+                    "note": "관계자들이 매우 우호적이었으며 추가 납품 문의가 있었음"
                   }
                 }
               }
@@ -557,6 +973,16 @@
               "format": "date"
             },
             "example": "2025-12-31"
+          },
+          {
+            "name": "point",
+            "in": "query",
+            "description": "영재개발원 필터 (1: 영재개발원만 조회)",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": 1
           }
         ],
         "responses": {
@@ -583,7 +1009,7 @@
                         "teacherPhone": "010-5683-5672",
                         "vocOccurred": true,
                         "vocResolved": false,
-                        "chargerPw": "1234",
+                        "chargerPw": true,
                         "quantity": 10,
                         "deliveryDate": "2025-03-10T00:00:00",
                         "amount": 1000000,
@@ -632,7 +1058,7 @@
                     "url": "www.school.es.kr",
                     "teacherName": "홍길동",
                     "teacherPhone": "010-1234-5678",
-                    "chargerPw": "1234",
+                    "chargerPw": true,
                     "quantity": 10,
                     "deliveryDate": "2023-06-01",
                     "amount": 1000000
@@ -660,6 +1086,119 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/schools/simple": {
+      "post": {
+        "tags": [
+          "학교 정보 API"
+        ],
+        "summary": "간단한 학교 정보 등록",
+        "description": "학교명만으로 간단하게 학교를 등록합니다. 일정 등록 시 새로운 학교를 빠르게 추가하는 용도입니다.",
+        "operationId": "registerSimpleSchool",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "인증 토큰 (Bearer 형식)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "Bearer eyJhbGc..."
+          }
+        ],
+        "requestBody": {
+          "description": "간단한 학교 등록 정보",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              "examples": {
+                "간단한 학교 등록 요청 예시": {
+                  "description": "간단한 학교 등록 요청 예시",
+                  "value": {
+                    "schoolName": "OO초등학교"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "등록 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "example": "SCH032"
+                },
+                "examples": {
+                  "학교 ID": {
+                    "description": "학교 ID",
+                    "value": "SCH032"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/school-history": {
+      "post": {
+        "tags": [
+          "학교별 히스토리 API"
+        ],
+        "summary": "방문 히스토리 등록",
+        "description": "새로운 방문 히스토리를 등록합니다. 요청 시 Authorization 헤더에 Bearer 토큰을 포함해야 합니다.",
+        "operationId": "createHistory",
+        "requestBody": {
+          "description": "방문 히스토리 등록 정보",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SchoolHistoryRequest"
+              },
+              "examples": {
+                "방문 히스토리 등록 요청 예시": {
+                  "description": "방문 히스토리 등록 요청 예시",
+                  "value": {
+                    "schoolId": "SCH001",
+                    "visitDate": "2025-05-19T10:00:00.000Z",
+                    "author": "홍길동",
+                    "content": "새로운 방문 히스토리 내용입니다."
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "400": {
+            "description": "잘못된 요청"
+          },
+          "201": {
+            "description": "등록 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SchoolHistoryResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패"
           }
         }
       }
@@ -718,6 +1257,373 @@
           },
           "400": {
             "description": "잘못된 요청"
+          }
+        }
+      }
+    },
+    "/api/notices": {
+      "get": {
+        "tags": [
+          "Notice"
+        ],
+        "summary": "공지사항 목록 조회",
+        "description": "활성 공지사항 목록을 조회합니다. 카테고리 필터링 가능합니다.",
+        "operationId": "getNotices",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "인증 토큰 (Bearer 형식)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "description": "카테고리 필터 (선택사항)",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "인증 실패",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NoticeResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NoticeResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "공지사항 목록 조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NoticeResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Notice"
+        ],
+        "summary": "공지사항 생성",
+        "description": "새로운 공지사항을 생성합니다.",
+        "operationId": "createNotice",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "인증 토큰 (Bearer 형식)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "공지사항 생성 정보",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NoticeRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NoticeResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notices/{id}/view": {
+      "post": {
+        "tags": [
+          "Notice"
+        ],
+        "summary": "공지사항 조회수 증가",
+        "description": "공지사항 조회수를 1 증가시킵니다.",
+        "operationId": "incrementViewCount",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "인증 토큰 (Bearer 형식)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "description": "공지사항 ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/custom-reports": {
+      "get": {
+        "tags": [
+          "Custom Report"
+        ],
+        "summary": "보고서 목록 조회",
+        "description": "보고서 목록을 페이징으로 조회합니다. 키워드 검색 및 타입 필터링 가능합니다.",
+        "operationId": "getReports",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "인증 토큰 (Bearer 형식)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "페이지 번호 (0부터 시작)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "description": "페이지 크기",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "description": "검색 키워드 (제목, 내용 검색)",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "description": "보고서 타입 필터",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "인증 실패",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageResponseDtoCustomReportListDto"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "보고서 목록 조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageResponseDtoCustomReportListDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageResponseDtoCustomReportListDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Custom Report"
+        ],
+        "summary": "보고서 생성",
+        "description": "새로운 보고서를 생성합니다. 비밀번호 설정이 필요합니다.",
+        "operationId": "createReport",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "인증 토큰 (Bearer 형식)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "보고서 생성 정보 (비밀번호 포함)",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomReportRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomReportResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/custom-reports/{id}/view": {
+      "post": {
+        "tags": [
+          "Custom Report"
+        ],
+        "summary": "보고서 조회수 증가",
+        "description": "보고서 조회수를 1 증가시킵니다.",
+        "operationId": "incrementViewCount_1",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "인증 토큰 (Bearer 형식)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "description": "보고서 ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/custom-reports/{id}/verify-password": {
+      "post": {
+        "tags": [
+          "Custom Report"
+        ],
+        "summary": "비밀번호 검증",
+        "description": "보고서 수정/삭제를 위한 비밀번호를 검증합니다.",
+        "operationId": "verifyPassword",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "인증 토큰 (Bearer 형식)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "description": "보고서 ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "비밀번호 검증 정보",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordVerificationDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }
@@ -997,9 +1903,6 @@
           "required": true
         },
         "responses": {
-          "404": {
-            "description": "메시지를 찾을 수 없음"
-          },
           "201": {
             "description": "작성 성공",
             "content": {
@@ -1010,6 +1913,9 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "메시지를 찾을 수 없음"
           }
         }
       }
@@ -1067,13 +1973,60 @@
         }
       }
     },
+    "/api/visits/weekly-report": {
+      "get": {
+        "tags": [
+          "방문 기록 API"
+        ],
+        "summary": "주간 보고서 조회",
+        "description": "지정된 기간 동안의 모든 방문 기록을 조회하여 주간 보고서 데이터를 제공합니다.",
+        "operationId": "getWeeklyReport",
+        "parameters": [
+          {
+            "name": "startDate",
+            "in": "query",
+            "description": "시작 날짜 (ISO 형식: YYYY-MM-DDTHH:mm:ss)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "2025-05-26T00:00:00"
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "description": "종료 날짜 (ISO 형식: YYYY-MM-DDTHH:mm:ss)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "2025-05-30T23:59:59"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VisitLogResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/visits/school/{schoolId}": {
       "get": {
         "tags": [
           "방문 기록 API"
         ],
         "summary": "학교별 방문 기록 목록 조회",
-        "description": "특정 학교에 대한 방문 기록 목록을 조회합니다. 방문 일자, 목적, VOC 발생 여부 등을 확인할 수 있습니다.",
+        "description": "특정 학교에 대한 방문 기록 목록을 조회합니다. 방문 일자, 목적, VOC 발생 여부, 특이사항/메모 등을 확인할 수 있습니다.",
         "operationId": "getVisitLogsBySchoolId",
         "parameters": [
           {
@@ -1113,10 +2066,11 @@
                         "purpose": "납품",
                         "interviewer": "임희수",
                         "vocOccurred": true,
-                        "vocContent": null,
+                        "vocContent": "제품 불량 발견",
                         "vocResolved": false,
                         "resolution": null,
-                        "completeDate": null
+                        "completeDate": null,
+                        "note": null
                       },
                       {
                         "id": 2,
@@ -1129,7 +2083,74 @@
                         "vocContent": null,
                         "vocResolved": null,
                         "resolution": null,
-                        "completeDate": null
+                        "completeDate": null,
+                        "note": "AI 및 정부 탐방 교사 6명 대상 직무 연수 : 긍정적인 반응"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/schools/excel-report": {
+      "get": {
+        "tags": [
+          "학교 정보 API"
+        ],
+        "summary": "엑셀 형태 납품 관리 대장 조회",
+        "description": "엑셀 형태의 납품 관리 대장을 조회합니다. 학교별 기본 정보와 방문 일정을 날짜별로 정리하여 제공합니다.",
+        "operationId": "getExcelReport",
+        "parameters": [
+          {
+            "name": "startDate",
+            "in": "query",
+            "description": "시작 날짜 (ISO 형식: YYYY-MM-DDTHH:mm:ss)",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "2025-05-26T00:00:00"
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "description": "종료 날짜 (ISO 형식: YYYY-MM-DDTHH:mm:ss)",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "2025-05-30T23:59:59"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "조회 성공",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "엑셀 보고서 데이터 예시": {
+                    "description": "엑셀 보고서 데이터 예시",
+                    "value": [
+                      {
+                        "SCHOOL_ID": "SCH001",
+                        "REGION": "강진",
+                        "SCHOOL_NAME": "강진지원교육청",
+                        "TEACHER1_NAME": "임희수",
+                        "TEACHER1_PHONE": "010-5683-5672",
+                        "POINT": "1",
+                        "visit_logs": [
+                          {
+                            "visitDate": "2025-05-26T10:00:00",
+                            "purpose": "납품",
+                            "interviewer": "임희수",
+                            "vocOccurred": true,
+                            "vocCategory": "기타",
+                            "vocResolved": false
+                          }
+                        ]
                       }
                     ]
                   }
@@ -1200,6 +2221,16 @@
               "format": "date"
             },
             "example": "2025-12-31"
+          },
+          {
+            "name": "point",
+            "in": "query",
+            "description": "영재개발원 필터 (1: 영재개발원만 조회)",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": 1
           }
         ],
         "responses": {
@@ -1226,7 +2257,7 @@
                         "teacherPhone": "010-5683-5672",
                         "vocOccurred": true,
                         "vocResolved": false,
-                        "chargerPw": "1234",
+                        "chargerPw": true,
                         "quantity": 10,
                         "deliveryDate": "2025-03-10T00:00:00",
                         "amount": 1000000,
@@ -1236,6 +2267,131 @@
                       }
                     ]
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/school-history/school/{schoolId}": {
+      "get": {
+        "tags": [
+          "학교별 히스토리 API"
+        ],
+        "summary": "학교별 히스토리 목록 조회",
+        "description": "특정 학교에 대한 히스토리 목록을 조회합니다. 요청 시 Authorization 헤더에 Bearer 토큰을 포함해야 합니다.",
+        "operationId": "getHistoriesBySchoolId",
+        "parameters": [
+          {
+            "name": "schoolId",
+            "in": "path",
+            "description": "학교 ID (ex: SCH001)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "SCH001"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SchoolHistoryResponse"
+                  }
+                },
+                "examples": {
+                  "방문 히스토리 목록 예시": {
+                    "description": "방문 히스토리 목록 예시",
+                    "value": [
+                      {
+                        "historyId": 1,
+                        "schoolId": "SCH001",
+                        "schoolName": "서울고등학교",
+                        "region": "서울",
+                        "visitDate": "2025-04-30T09:30:00",
+                        "author": "김영업",
+                        "content": "3학년 교실에서 진행된 학생들과의 미팅에서 교과서 관련 피드백을 받았습니다.",
+                        "createdAt": "2025-04-30T10:15:30"
+                      },
+                      {
+                        "historyId": 2,
+                        "schoolId": "SCH001",
+                        "schoolName": "서울고등학교",
+                        "region": "서울",
+                        "visitDate": "2025-04-15T14:00:00",
+                        "author": "이담당",
+                        "content": "교장 선생님과의 미팅에서 교과서 납품 일정 조율함.",
+                        "createdAt": "2025-04-15T16:30:00"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패"
+          }
+        }
+      }
+    },
+    "/api/school-history/school/{schoolId}/paged": {
+      "get": {
+        "tags": [
+          "학교별 히스토리 API"
+        ],
+        "summary": "학교별 히스토리 페이징 조회",
+        "description": "특정 학교에 대한 히스토리를 페이징 처리하여 조회합니다.",
+        "operationId": "getHistoriesBySchoolIdPaged",
+        "parameters": [
+          {
+            "name": "schoolId",
+            "in": "path",
+            "description": "학교 ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "SCH001"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "페이지 번호(0부터 시작)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            },
+            "example": 0
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "description": "페이지 크기",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            },
+            "example": 10
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page"
                 }
               }
             }
@@ -1280,6 +2436,26 @@
         }
       }
     },
+    "/api/schedules/schools": {
+      "get": {
+        "tags": [
+          "일정 관리 API"
+        ],
+        "summary": "학교 목록 조회",
+        "description": "일정 등록/수정 시 선택 가능한 학교 목록을 조회합니다.",
+        "operationId": "getAllSchools",
+        "responses": {
+          "200": {
+            "description": "조회 성공",
+            "content": {
+              "application/json": {
+
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/schedules/period": {
       "get": {
         "tags": [
@@ -1311,6 +2487,9 @@
           }
         ],
         "responses": {
+          "400": {
+            "description": "잘못된 요청"
+          },
           "200": {
             "description": "조회 성공",
             "content": {
@@ -1323,9 +2502,89 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/notices/recent": {
+      "get": {
+        "tags": [
+          "Notice"
+        ],
+        "summary": "최근 공지사항 조회",
+        "description": "대시보드용 최근 공지사항을 조회합니다.",
+        "operationId": "getRecentNotices",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "인증 토큰 (Bearer 형식)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
           },
-          "400": {
-            "description": "잘못된 요청"
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "조회할 개수 (기본값: 5)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 5
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NoticeResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notices/pinned": {
+      "get": {
+        "tags": [
+          "Notice"
+        ],
+        "summary": "고정 공지사항 조회",
+        "description": "고정된 공지사항만 조회합니다.",
+        "operationId": "getPinnedNotices",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "인증 토큰 (Bearer 형식)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NoticeResponseDto"
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -1362,6 +2621,78 @@
         }
       }
     },
+    "/api/custom-reports/recent": {
+      "get": {
+        "tags": [
+          "Custom Report"
+        ],
+        "summary": "최근 보고서 조회",
+        "description": "대시보드용 최근 보고서를 조회합니다.",
+        "operationId": "getRecentReports",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "인증 토큰 (Bearer 형식)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CustomReportListDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/custom-reports/popular": {
+      "get": {
+        "tags": [
+          "Custom Report"
+        ],
+        "summary": "인기 보고서 조회",
+        "description": "조회수가 높은 보고서를 조회합니다.",
+        "operationId": "getPopularReports",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "인증 토큰 (Bearer 형식)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CustomReportListDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/chat/rooms/{roomId}": {
       "get": {
         "tags": [
@@ -1384,9 +2715,6 @@
           }
         ],
         "responses": {
-          "404": {
-            "description": "채팅방을 찾을 수 없음"
-          },
           "200": {
             "description": "조회 성공",
             "content": {
@@ -1396,6 +2724,9 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "채팅방을 찾을 수 없음"
           }
         }
       },
@@ -1550,6 +2881,16 @@
             "description": "VOC 내용",
             "example": "제품 불량 발견"
           },
+          "vocCategory": {
+            "type": "string",
+            "description": "VOC 분류",
+            "example": "코딥 A/S",
+            "enum": [
+              "코딥 A/S",
+              "교육 관련",
+              "기타"
+            ]
+          },
           "vocResolved": {
             "type": "boolean",
             "description": "VOC 해결 여부",
@@ -1559,6 +2900,11 @@
             "type": "string",
             "description": "해결 내용",
             "example": "교체품 배송 완료"
+          },
+          "note": {
+            "type": "string",
+            "description": "특이사항/메모",
+            "example": "AI 및 정부 탐방 교사 6명 대상 직무 연수 : 긍정적인 반응"
           }
         },
         "description": "방문 기록 등록 요청 DTO"
@@ -1596,9 +2942,14 @@
             "example": "010-1234-5678"
           },
           "chargerPw": {
+            "type": "boolean",
+            "description": "충전함 비밀번호 사용 여부",
+            "example": true
+          },
+          "point": {
             "type": "string",
-            "description": "충전함 비밀번호",
-            "example": "1234"
+            "description": "분류 (1: 영재교육원, 2: 전남, 3: 전북, 4: 기타지역)",
+            "example": "1"
           },
           "quantity": {
             "type": "integer",
@@ -1620,6 +2971,92 @@
           }
         },
         "description": "학교 등록 요청 DTO"
+      },
+      "SchoolHistoryRequest": {
+        "required": [
+          "author",
+          "content",
+          "schoolId",
+          "visitDate"
+        ],
+        "type": "object",
+        "properties": {
+          "schoolId": {
+            "type": "string",
+            "description": "학교 ID",
+            "example": "SCH001"
+          },
+          "visitDate": {
+            "type": "string",
+            "description": "방문 일자",
+            "format": "date-time"
+          },
+          "author": {
+            "type": "string",
+            "description": "작성자",
+            "example": "김영업"
+          },
+          "content": {
+            "type": "string",
+            "description": "내용",
+            "example": "3학년 교실에서 진행된 학생들과의 미팅에서 교과서 관련 피드백을 받았습니다."
+          }
+        },
+        "description": "학교 방문 히스토리 요청 DTO"
+      },
+      "SchoolHistoryResponse": {
+        "required": [
+          "author",
+          "content",
+          "historyId",
+          "schoolId",
+          "visitDate"
+        ],
+        "type": "object",
+        "properties": {
+          "historyId": {
+            "type": "integer",
+            "description": "히스토리 ID",
+            "format": "int32",
+            "example": 1
+          },
+          "schoolId": {
+            "type": "string",
+            "description": "학교 ID",
+            "example": "SCH001"
+          },
+          "schoolName": {
+            "type": "string",
+            "description": "학교 이름",
+            "example": "서울고등학교"
+          },
+          "region": {
+            "type": "string",
+            "description": "지역",
+            "example": "서울"
+          },
+          "visitDate": {
+            "type": "string",
+            "description": "방문 일자",
+            "format": "date-time"
+          },
+          "author": {
+            "type": "string",
+            "description": "작성자",
+            "example": "김영업"
+          },
+          "content": {
+            "type": "string",
+            "description": "내용",
+            "example": "3학년 교실에서 진행된 학생들과의 미팅에서 교과서 관련 피드백을 받았습니다."
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "생성 시간",
+            "format": "date-time"
+          }
+        },
+        "description": "학교 방문 히스토리 응답 DTO"
       },
       "ScheduleRequestDto": {
         "required": [
@@ -1647,6 +3084,16 @@
             "type": "string",
             "description": "종료 일시",
             "format": "date-time"
+          },
+          "schoolId": {
+            "type": "string",
+            "description": "학교 ID",
+            "example": "SCH001"
+          },
+          "schoolName": {
+            "type": "string",
+            "description": "학교 이름",
+            "example": "강진지원교육청"
           }
         },
         "description": "일정 요청 DTO"
@@ -1689,9 +3136,203 @@
             "type": "string",
             "description": "수정 일시",
             "format": "date-time"
+          },
+          "schoolId": {
+            "type": "string",
+            "description": "학교 ID",
+            "example": "SCH001"
+          },
+          "schoolName": {
+            "type": "string",
+            "description": "학교 이름",
+            "example": "강진지원교육청"
           }
         },
         "description": "일정 응답 DTO"
+      },
+      "NoticeRequestDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "author": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "isPinned": {
+            "type": "boolean"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "NoticeResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "title": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "author": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "isPinned": {
+            "type": "boolean"
+          },
+          "viewCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CustomReportRequestDto": {
+        "required": [
+          "content",
+          "password",
+          "title"
+        ],
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "보고서 제목",
+            "example": "2025년 1월 주간 업무 보고서"
+          },
+          "content": {
+            "type": "string",
+            "description": "보고서 내용 (HTML 형식)",
+            "example": "\u003Ch2\u003E주요 성과\u003C/h2\u003E\u003Cp\u003E이번 주 주요 성과는...\u003C/p\u003E"
+          },
+          "author": {
+            "type": "string",
+            "description": "작성자",
+            "example": "홍길동"
+          },
+          "reportType": {
+            "type": "string",
+            "description": "보고서 유형",
+            "example": "weekly",
+            "enum": [
+              "weekly",
+              "monthly",
+              "quarterly",
+              "special",
+              "REPORT"
+            ]
+          },
+          "password": {
+            "type": "string",
+            "description": "비밀번호 (수정/삭제 시 사용)",
+            "example": "password123"
+          }
+        },
+        "description": "보고서 생성/수정 요청 DTO"
+      },
+      "CustomReportResponseDto": {
+        "required": [
+          "id"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "보고서 ID",
+            "format": "int32",
+            "example": 1
+          },
+          "title": {
+            "type": "string",
+            "description": "보고서 제목",
+            "example": "2025년 1월 주간 업무 보고서"
+          },
+          "content": {
+            "type": "string",
+            "description": "보고서 내용 (HTML 형식)",
+            "example": "\u003Ch2\u003E주요 성과\u003C/h2\u003E\u003Cp\u003E이번 주 주요 성과는...\u003C/p\u003E"
+          },
+          "author": {
+            "type": "string",
+            "description": "작성자",
+            "example": "홍길동"
+          },
+          "reportType": {
+            "type": "string",
+            "description": "보고서 유형",
+            "example": "weekly"
+          },
+          "viewCount": {
+            "type": "integer",
+            "description": "조회수",
+            "format": "int32",
+            "example": 15
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "생성일시",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "수정일시",
+            "format": "date-time"
+          }
+        },
+        "description": "보고서 응답 DTO"
+      },
+      "PasswordVerificationDto": {
+        "required": [
+          "password"
+        ],
+        "type": "object",
+        "properties": {
+          "password": {
+            "type": "string",
+            "description": "검증할 비밀번호",
+            "example": "password123"
+          }
+        },
+        "description": "비밀번호 검증 요청 DTO"
       },
       "CreateChatRoomRequest": {
         "required": [
@@ -1775,6 +3416,11 @@
             "description": "학교 ID",
             "example": "SCH001"
           },
+          "schoolName": {
+            "type": "string",
+            "description": "학교명",
+            "example": "강진지원교육청"
+          },
           "region": {
             "type": "string",
             "description": "지역",
@@ -1805,6 +3451,16 @@
             "description": "VOC 내용",
             "example": "제품 불량 발견"
           },
+          "vocCategory": {
+            "type": "string",
+            "description": "VOC 분류",
+            "example": "코딥 A/S",
+            "enum": [
+              "코딥 A/S",
+              "교육 관련",
+              "기타"
+            ]
+          },
           "vocResolved": {
             "type": "boolean",
             "description": "VOC 해결 여부",
@@ -1818,6 +3474,11 @@
             "type": "string",
             "description": "완료 일자",
             "format": "date-time"
+          },
+          "note": {
+            "type": "string",
+            "description": "특이사항/메모",
+            "example": "AI 및 정부 탐방 교사 6명 대상 직무 연수 : 긍정적인 반응"
           }
         },
         "description": "방문 기록 응답 DTO"
@@ -1865,15 +3526,43 @@
             "description": "VOC 조치 여부",
             "example": false
           },
+          "vocCategory": {
+            "type": "string",
+            "description": "VOC 유형",
+            "example": "기타"
+          },
           "vocContent": {
             "type": "string",
             "description": "VOC 내용",
             "example": "제품 불량 발견"
           },
+          "vocOccurredCount": {
+            "type": "integer",
+            "description": "VOC 발생 건수",
+            "format": "int32",
+            "example": 3
+          },
+          "vocResolvedCount": {
+            "type": "integer",
+            "description": "VOC 조치 완료 건수",
+            "format": "int32",
+            "example": 2
+          },
+          "vocUnresolvedCount": {
+            "type": "integer",
+            "description": "VOC 조치 미완료 건수",
+            "format": "int32",
+            "example": 1
+          },
           "chargerPw": {
+            "type": "boolean",
+            "description": "충전함 비밀번호 사용 여부",
+            "example": true
+          },
+          "point": {
             "type": "string",
-            "description": "충전함 비밀번호",
-            "example": "1234"
+            "description": "분류 (1: 영재교육원, 2: 전남, 3: 전북, 4: 기타지역)",
+            "example": "1"
           },
           "quantity": {
             "type": "integer",
@@ -1910,6 +3599,92 @@
         },
         "description": "학교 정보 응답 DTO"
       },
+      "Page": {
+        "type": "object",
+        "properties": {
+          "totalElements": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "content": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "number": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sort": {
+            "$ref": "#/components/schemas/SortObject"
+          },
+          "first": {
+            "type": "boolean"
+          },
+          "last": {
+            "type": "boolean"
+          },
+          "numberOfElements": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageable": {
+            "$ref": "#/components/schemas/PageableObject"
+          },
+          "empty": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PageableObject": {
+        "type": "object",
+        "properties": {
+          "offset": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "sort": {
+            "$ref": "#/components/schemas/SortObject"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "paged": {
+            "type": "boolean"
+          },
+          "unpaged": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SortObject": {
+        "type": "object",
+        "properties": {
+          "empty": {
+            "type": "boolean"
+          },
+          "sorted": {
+            "type": "boolean"
+          },
+          "unsorted": {
+            "type": "boolean"
+          }
+        }
+      },
       "DashboardStatsDto": {
         "type": "object",
         "properties": {
@@ -1933,6 +3708,101 @@
           }
         },
         "description": "대시보드 통계 정보 응답 DTO"
+      },
+      "CustomReportListDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "보고서 ID",
+            "format": "int32",
+            "example": 1
+          },
+          "title": {
+            "type": "string",
+            "description": "보고서 제목",
+            "example": "2025년 1월 주간 업무 보고서"
+          },
+          "author": {
+            "type": "string",
+            "description": "작성자",
+            "example": "홍길동"
+          },
+          "reportType": {
+            "type": "string",
+            "description": "보고서 유형",
+            "example": "weekly"
+          },
+          "viewCount": {
+            "type": "integer",
+            "description": "조회수",
+            "format": "int32",
+            "example": 15
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "생성일시",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "수정일시",
+            "format": "date-time"
+          }
+        },
+        "description": "보고서 목록용 DTO"
+      },
+      "PageResponseDtoCustomReportListDto": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "array",
+            "description": "데이터 목록",
+            "items": {
+              "$ref": "#/components/schemas/CustomReportListDto"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "description": "현재 페이지 번호 (0부터 시작)",
+            "format": "int32",
+            "example": 0
+          },
+          "size": {
+            "type": "integer",
+            "description": "페이지 크기",
+            "format": "int32",
+            "example": 10
+          },
+          "totalElements": {
+            "type": "integer",
+            "description": "전체 요소 개수",
+            "format": "int64",
+            "example": 100
+          },
+          "totalPages": {
+            "type": "integer",
+            "description": "전체 페이지 개수",
+            "format": "int32",
+            "example": 10
+          },
+          "first": {
+            "type": "boolean",
+            "description": "첫 번째 페이지 여부",
+            "example": true
+          },
+          "last": {
+            "type": "boolean",
+            "description": "마지막 페이지 여부",
+            "example": false
+          },
+          "empty": {
+            "type": "boolean",
+            "description": "비어있는 페이지 여부",
+            "example": false
+          }
+        },
+        "description": "페이징 응답 DTO"
       },
       "ChatRoomDto": {
         "type": "object",
@@ -2056,6 +3926,13 @@
             "type": "string"
           }
         }
+      }
+    },
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "Bearer",
+        "bearerFormat": "JWT"
       }
     }
   }
